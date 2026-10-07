@@ -59,7 +59,8 @@ def fig_method_matrix(out: Path, figs: Path, cfg):
                     color="white" if norm.iat[i, j] > 0.6 else INK, fontsize=8.5)
     ax.set_xticks(range(len(cols)), list(cols.values()), fontsize=8)
     rn = {"attr": "признаки", "comove": "совместное движение", "hybrid": "гибрид"}
-    ax.set_yticks(range(len(M)), [f"{rn[r]} · {m}" for r, m in M.index], fontsize=8.5)
+    ax.set_yticks(range(len(M)), [f"{rn[r]} · {m}" if m != "kmeans" else f"k-средних по признакам (k как у «{rn[r]}»)"
+                                  for r, m in M.index], fontsize=8.5)
     ax.tick_params(length=0)
     for s in ax.spines.values():
         s.set_visible(False)
@@ -84,7 +85,7 @@ def fig_agreement(out: Path, figs: Path, cfg):
             ax.text(j, i, f"{M.iat[i, j]:.2f}", ha="center", va="center", fontsize=7.5,
                     color="white" if M.iat[i, j] > 0.6 else INK)
     rn = {"attr": "призн.", "comove": "движ.", "hybrid": "гибр."}
-    lab = [f"{rn[k.split('/')[0]]}/{k.split('/')[1]}" for k in keys]
+    lab = [f"{rn[k.split('/')[0]]}/{k.split('/')[1]}" if k.split('/')[1] != "kmeans" else f"k-ср. (k {rn[k.split('/')[0]]})" for k in keys]
     ax.set_xticks(range(len(keys)), lab, rotation=60, ha="right", fontsize=7.5)
     ax.set_yticks(range(len(keys)), lab, fontsize=7.5)
     ax.tick_params(length=0)

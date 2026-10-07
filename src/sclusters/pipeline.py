@@ -365,9 +365,24 @@ def stage_geo(run: Run):
                 same0 = (S.loc[pa, "region"].to_numpy() == S.loc[pb, "region"].to_numpy()).mean()
                 d0 = np.median(_haversine(S.loc[pa, "lon"].to_numpy(), S.loc[pa, "lat"].to_numpy(),
                                           S.loc[pb, "lon"].to_numpy(), S.loc[pb, "lat"].to_numpy()))
+                # более строгий ориентир: случайные пары МО одного типа по названию и одного основного типа
+                tp = pd.Series([D.mo_type(x) for x in S.index], index=S.index)
+                main = run.partition(t, v, cfg["graph"]["main_rule"], cfg["cluster"]["main_method"]).reindex(S.index)
+                base = {}
+                for bname, key in [("same_region_random_same_motype", tp), ("same_region_random_same_maintype", main)]:
+                    hits, tot = 0, 0
+                    for _, grp in S.groupby(key.to_numpy()):
+                        if len(grp) < 2:
+                            continue
+                        n = min(4000, len(grp) * 20)
+                        ia, ib = rng.integers(0, len(grp), n), rng.integers(0, len(grp), n)
+                        k = ia != ib
+                        hits += (grp["region"].to_numpy()[ia[k]] == grp["region"].to_numpy()[ib[k]]).sum()
+                        tot += k.sum()
+                    base[bname] = float(hits / max(tot, 1))
                 rows.append({"month": str(t.date()), "rule": r, "scope": scope, "edges": int(m.sum()),
                              "same_region_share": float(same.mean()), "same_region_random": float(same0),
-                             "median_km": float(np.median(d)), "median_km_random": float(d0)})
+                             **base, "median_km": float(np.median(d)), "median_km_random": float(d0)})
     E = pd.DataFrame(rows)
     E.to_csv(run.out / "geo_edges.csv", index=False)
     # согласие кластеров с регионами (AMI) по всем конфигурациям
@@ -395,7 +410,19 @@ def stage_geo(run: Run):
     conc = (ok.loc[lab.index].assign(c=lab).groupby("region")["c"]
             .agg(n="size", top_share=lambda x: x.value_counts(normalize=True).iloc[0],
                  top_cluster=lambda x: int(x.value_counts().index[0])))
-    conc[conc.n >= 15].sort_values("top_share", ascending=False).to_csv(run.out / "geo_region_concentration.csv")
+    conc = conc[conc.n >= 15].sort_values("top_share", ascending=False)
+    # ориентир: та же статистика при случайной перестановке меток кластеров (200 повторов)
+    sub = ok.loc[lab.index]
+    big = conc.index
+    perm_med = []
+    for _ in range(200):
+        pl = pd.Series(rng.permutation(lab.to_numpy()), index=lab.index)
+        sh = sub.assign(c=pl).groupby("region")["c"].agg(lambda x: x.value_counts(normalize=True).iloc[0])
+        perm_med.append(float(sh.reindex(big).median()))
+    conc.to_csv(run.out / "geo_region_concentration.csv")
+    (run.out / "geo_region_concentration_null.json").write_text(json.dumps(
+        {"median_top_share": float(conc.top_share.median()), "permutation_median_mean": float(np.mean(perm_med)),
+         "permutation_median_p95": float(np.quantile(perm_med, 0.95)), "n_regions": int(len(conc))}), encoding="utf-8")
     return E
 
 

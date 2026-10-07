@@ -90,7 +90,7 @@ def summarize(E: pd.DataFrame) -> pd.DataFrame:
             pm = g["ae_sum"] / g["n"]
             row.update({"placebo_MAE_mean": pm.mean(), "placebo_MAE_p05": pm.quantile(0.05),
                         "p_vs_placebo": float((pm <= e.mean()).mean())})
-            # блочный бутстрап по месяцам прогноза: разница с национальным фактором
+            # средняя разница с национальным фактором по каждой точке прогноза
             d = (e - nat.reindex(e.index)).groupby(level="origin").mean()
             row["diff_by_origin"] = ";".join(f"{x:.0f}" for x in d)
         rows.append(row)
