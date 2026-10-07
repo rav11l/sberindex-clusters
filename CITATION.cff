@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "Если используете код или результаты, сошлитесь так."
+title: "Тратят похоже или тратят вместе: динамическая сеть муниципалитетов по безналичным расходам"
+authors:
+  - family-names: Akhtyamov
+    given-names: Ravil
+    affiliation: Digital Economy Lab
+    orcid: "https://orcid.org/0000-0002-0783-8573"
+version: 0.1.0
+date-released: 2026-10-07
+license: MIT
+repository-code: "https://github.com/rav11l/sberindex-clusters"
+references:
+  - type: software
+    title: "Шок по расписанию"
+    doi: 10.5281/zenodo.22827296

@@ -1,0 +1,81 @@
+# Все параметры прогона. Любой ключ переопределяется из командной строки:
+#   python -m sclusters.cli all --set graph.k=15 cluster.resolution=1.2
+seed: 42
+output_dir: outputs
+
+data:
+  raw_dir: data/raw
+  file: sberindex_mo_spending.parquet      # та же выгрузка, что в sberindex-shocks; sha256 в data/hashes.json
+  hashes: data/hashes.json
+  total: Все категории
+  categories: [Продовольствие, Маркетплейсы, Транспорт, Здоровье, Общественное питание]
+  drop_ambiguous_names: true               # одноимённые МО разных регионов нельзя надёжно сшить между категориями
+
+snapshots:                                 # ежемесячные снимки сети; годовой прирост есть только с 01.2024
+  start: "2024-01-01"
+  end: "2024-12-01"
+  window: 3                                # признаки — среднее за 3 месяца, закончившихся месяцем снимка
+  comove_window: 12                        # окно корреляции месячных изменений для рёбер comove
+
+features:                                  # блоки признаков; вес блока делится поровну между его признаками
+  # level     — log уровня расходов минус медиана по МО того же месяца
+  # structure — доли пяти категорий и «прочего» в расходах
+  # growth    — годовой log-прирост по шести рядам минус медиана того же месяца
+  variants:
+    full:      {level: 1.0, structure: 1.0, growth: 1.0}
+    no_growth: {level: 1.0, structure: 1.0, growth: 0.0}   # тип экономики без текущей динамики
+  main_variant: no_growth                  # growth в типе не участвует: разбиения по текущему приросту собирают
+                                           # временные отклонения и однородны по сезонности хуже случайных групп
+                                           # (outputs/validation_forecast.csv); динамику дают ежемесячные снимки
+
+graph:
+  rules: [attr, comove, hybrid]            # правила рёбер, сравниваются между собой
+  main_rule: hybrid
+  k: 10                                    # число соседей в kNN-графе
+  hybrid_alpha: 0.5                        # вес attr в hybrid; 1 - alpha — вес comove
+
+cluster:
+  methods: [leiden, spectral, kmeans]      # kmeans — контроль без сети, только признаки
+  main_method: leiden
+  resolution: 0.5                          # разрешение Leiden: наибольшее γ на сетке, при котором бутстрап-устойчивость
+                                           # основной конфигурации не ниже 0,85 (outputs/resolution_sensitivity.csv)
+  min_size: 15                             # кластеры меньше порога сливаются с ближайшим по признакам
+  k_grid: [4, 5, 6, 7, 8, 9, 10, 12]       # чувствительность к числу кластеров
+  n_restarts: 10                           # повторные запуски Leiden с разными зёрнами
+  evolutionary: true                       # Leiden с начальным разбиением из прошлого месяца
+
+stability:
+  n_boot: 20                               # подвыборки МО для оценки устойчивости
+  frac: 0.9
+  months: ["2024-03-01", "2024-06-01", "2024-09-01", "2024-12-01"]
+  resolution_grid: [0.3, 0.5, 0.75, 1.0, 1.5]
+
+dynamics:
+  jaccard_continue: 0.3                    # порог продолжения кластера между снимками
+  sankey_months: ["2024-01-01", "2024-04-01", "2024-07-01", "2024-10-01", "2024-12-01"]
+
+validation:                                # внешняя проверка: помогает ли разбиение прогнозу
+  origins: ["2024-06-01", "2024-07-01", "2024-08-01", "2024-09-01"]
+  horizons: [1, 2, 3]
+  factor_window: 3                         # как factor_only в sberindex-shocks
+  n_placebo: 50                            # случайные разбиения тех же размеров
+
+events:                                    # паводки весны 2024 — МО, названные в первоисточниках поимённо
+  flood_2024: [городской округ город Орск, городской округ город Новотроицк, городской округ город Оренбург,
+               городской округ город Курган, городской округ город Ишим]
+
+geo:                                       # внешняя привязка к регионам и координатам (только для проверки и карты)
+  enabled: true
+  root: data/external/Russia_geojson_OSM   # клон github.com/timurkanaz/Russia_geojson_OSM, коммит закреплён в geo.py
+
+interpretation:                            # названия типов — авторская интерпретация профилей (outputs/profiles.csv,
+  names:                                   # composition.csv, geo_match.csv) на декабрь 2024; номера линий при seed 42
+    0: Районы и малые города
+    1: Столичные агломерации
+    2: Региональные города
+    3: Север и Дальний Восток
+  names_en:
+    0: Districts and small towns
+    1: Capital agglomerations
+    2: Regional cities
+    3: North and Far East

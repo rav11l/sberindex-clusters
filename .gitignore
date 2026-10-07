@@ -1,0 +1,11 @@
+data/raw/*
+!data/raw/.gitkeep
+data/external/
+outputs/*
+!outputs/figures/
+outputs/figures/*
+!outputs/figures/*.png
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/

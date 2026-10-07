@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sberindex-clusters"
+version = "0.1.0"
+description = "Динамическая сеть муниципалитетов по безналичным расходам (СберИндекс): типы локальных экономик и их изменение во времени"
+authors = [{name = "Ravil Akhtyamov"}]
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+  "numpy>=1.26", "pandas>=2.1", "pyarrow>=14", "pyyaml>=6", "scipy>=1.11", "scikit-learn>=1.4",
+  "python-igraph>=0.11", "leidenalg>=0.10", "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
