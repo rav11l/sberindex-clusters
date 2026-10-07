@@ -37,6 +37,7 @@ def test_dynamics(S):
     assert S["mo_never_moved_share"] == pytest.approx(0.902, abs=0.001)
     assert S["events_evolutionary"] == 0
     assert S["flood_cities_constant"] and S["n_flood_cities"] == 5
+    assert S["seed_noise_moved_mean"] == pytest.approx(0.017, abs=0.001)
 
 
 def test_geography(S):
@@ -44,6 +45,8 @@ def test_geography(S):
     assert e["same_region_share"] == pytest.approx(0.214, abs=0.002)
     assert e["median_km"] == pytest.approx(611, abs=2)
     assert S["geo_match"]["ok"] == 1744
+    assert e["same_region_random_same_maintype"] == pytest.approx(0.082, abs=0.002)
+    assert e["same_region_random_same_motype"] == pytest.approx(0.057, abs=0.002)
 
 
 def test_profiles(S):

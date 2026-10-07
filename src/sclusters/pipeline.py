@@ -257,6 +257,17 @@ def stage_dynamics(run: Run):
         L.to_csv(run.out / f"lines_{kind}.csv")
         ev.to_csv(run.out / f"events_{kind}.csv", index=False)
     Q.to_csv(run.out / "dynamics_quality.csv", index=False)
+    # ориентир для смены типа: расхождение независимых запусков с разными зёрнами на одном снимке
+    noise = []
+    for t in cfg["stability"]["months"]:
+        labs = [run.partition(t, v, r, m, seed=100 + s) for s in range(6)]
+        for i in range(len(labs)):
+            for j in range(i + 1, len(labs)):
+                Lp, _ = Y.track({pd.Timestamp("2000-01-01"): labs[i], pd.Timestamp("2000-02-01"): labs[j]},
+                                cfg["dynamics"]["jaccard_continue"])
+                noise.append({"month": t, "ari": C.ari(labs[i], labs[j]),
+                              "moved_share": float((Lp.iloc[:, 0] != Lp.iloc[:, 1]).mean())})
+    pd.DataFrame(noise).to_csv(run.out / "seed_noise.csv", index=False)
     pd.concat(ch).to_csv(run.out / "dynamics_churn.csv", index=False)
     kind = "evolutionary" if "evolutionary" in parts else "independent"
     L = pd.read_csv(run.out / f"lines_{kind}.csv", index_col=0)
@@ -462,6 +473,10 @@ def stage_summary(run: Run):
     S["churn_max"] = {k: round(float(x), 4) for k, x in C.groupby("kind").moved_share.max().items()}
     ev = pd.read_csv(out / "events_evolutionary.csv") if (out / "events_evolutionary.csv").exists() else pd.DataFrame()
     S["events_evolutionary"] = int(len(ev))
+    if (out / "seed_noise.csv").exists():
+        N = pd.read_csv(out / "seed_noise.csv")
+        S["seed_noise_moved_mean"] = round(float(N.moved_share.mean()), 4)
+        S["seed_noise_moved_max_month"] = round(float(N.groupby("month").moved_share.mean().max()), 4)
     P = pd.read_csv(out / "profiles.csv")
     last = P.month.max()
     S["profiles_last"] = P[P.month == last].round(4).to_dict(orient="records")
