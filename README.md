@@ -1,11 +1,14 @@
 # Тратят похоже или тратят вместе
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23209137.svg)](https://doi.org/10.5281/zenodo.23209137)
+
 Динамическая сеть 1 904 муниципальных образований по безналичным потребительским расходам: типы локальных экономик, их устойчивость и изменение в 2024 году. Данные — СберИндекс, «Потребительские безналичные расходы на уровне муниципальных образований».
 
 Автор — Равиль Ахтямов, Digital Economy Lab. Продолжение работы [«Шок по расписанию»](https://github.com/rav11l/sberindex-shocks) на той же выгрузке.
 
 - Отчёт о методологии и результатах: [`report/methodology.md`](report/methodology.md)
 - Рисунки: [`outputs/figures/`](outputs/figures/)
+- Страница исследования: [digitaleconomylab.ru/sberindex-clusters](https://digitaleconomylab.ru/sberindex-clusters)
 
 ## Результаты в четырёх строках
 
@@ -55,4 +58,4 @@ python -m sclusters.cli all --set cluster.resolution=0.75 graph.k=15
 
 Код — MIT. Границы МО — © участники OpenStreetMap, ODbL, через [timurkanaz/Russia_geojson_OSM](https://github.com/timurkanaz/Russia_geojson_OSM). Данные — СберИндекс.
 
-Ахтямов Р. Тратят похоже или тратят вместе: динамическая сеть муниципалитетов по безналичным расходам. Digital Economy Lab, 2026. github.com/rav11l/sberindex-clusters
+Ахтямов Р. Тратят похоже или тратят вместе: динамическая сеть муниципалитетов по безналичным расходам. Digital Economy Lab, 2026. DOI [10.5281/zenodo.23209137](https://doi.org/10.5281/zenodo.23209137) — ссылка на все версии, всегда ведёт на последнюю.

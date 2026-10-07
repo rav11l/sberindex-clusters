@@ -7,9 +7,18 @@ authors:
     affiliation: Digital Economy Lab
     orcid: "https://orcid.org/0000-0002-0783-8573"
 version: 0.1.0
+doi: 10.5281/zenodo.23209137
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23209137
+    description: Все версии (concept DOI)
+  - type: doi
+    value: 10.5281/zenodo.23209138
+    description: Версия 0.1.0
 date-released: 2026-10-07
 license: MIT
 repository-code: "https://github.com/rav11l/sberindex-clusters"
+url: "https://digitaleconomylab.ru/sberindex-clusters"
 references:
   - type: software
     title: "Шок по расписанию"
